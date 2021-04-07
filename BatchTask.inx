@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
+  <name>BatchTask</name>
+  <id>org.inkscape.batch_task</id>
+  
+
+  <param name="tab_main" type="notebook">
+    <page name="Options" gui-text="Options">
+      <param name="target" type="optiongroup" appearance="radio" gui-text="XPath upon:">
+        <option value="root">Entire document</option>
+        <option value="selected">Only selected objects</option>
+      </param>
+
+      <param name="xpath" type="string" gui-text="XPath:"></param>
+      <param name="tab_effect" type="notebook">
+        <page name="Presets" gui-text="Presets">
+          <param name="mode" type="optiongroup" appearance="radio" gui-text="Nothing here, work in progress:">
+            <option value="all">Entire select</option>
+            <option value="indiv">Each object in select</option>
+          </param>
+        </page>
+        <page name="Simple" gui-text="Simple">
+          <param name="effect1" type="string" gui-text="Effect 1:"></param>
+          <param name="effect2" type="string" gui-text="Effect 2:"></param>
+          <param name="effect3" type="string" gui-text="Effect 3:"></param>
+        </page>
+        <page name="Multi" gui-text="Multi">
+          <param name="effects" type="string" gui-text="Effects:" max-length="200" appearance="multiline"></param>
+        </page>
+      </param>
+      <!-- <param type="string" name="varname" gui-text="label" indent="1" max-length="5"  appearance="multiline">some text</param> -->
+      <!-- <param name="param_str2" type="string" gui-text="Effects:" [max-length="5" | appearance="multiline"]></param> -->
+      <!-- <param type="string" name="varname" gui-text="label" [indent="1"] [max-length="5" | appearance="multiline"]>some text</param> -->
+      <param name="mode" type="optiongroup" appearance="radio" gui-text="Apply effects to:">
+        <option value="all">Entire selection</option>
+        <option value="indiv">Each object in selection</option>
+      </param>
+    </page>
+    <page name="Help" gui-text="Help">
+      <label xml:space="preserve">
+This template provides extension writers with a basis to write their python based Inkscape extensions quickly and properly.
+
+This testing help text can be changed to help users of the extension.
+      </label>
+    </page>
+    <page name="null_Reference" gui-text="Reference"><!--REFERENCE START -->
+      <param name="null_notebook" type="notebook">
+        <page name="null_Edit" gui-text="Edit">
+          <label xml:space="preserve">
+EditCut
+EditCopy
+EditPaste
+----------
+EditDuplicate
+EditClone
+SelectionCreateBitmap
+----------
+EditDelete
+          </label>
+        </page>
+        <page name="null_Layer" gui-text="Layer">
+          <label xml:space="preserve">
+LayerNew
+LayerRename
+          </label>
+        </page>
+        <page name="null_Objects" gui-text="Objects">
+          <label xml:space="preserve">
+SelectionGroup
+SelectionUnGroup
+----------
+ObjectSetClipPath
+ObjectUnSetClipPath
+ObjectSetMask
+ObjectUnSetMask
+----------
+SelectionRaise
+SelectionLower
+SelectionToFront
+SelectionToBack
+          </label>
+        </page>
+        <page name="null_Objects 2" gui-text="Objects 2">
+          <label xml:space="preserve">
+ObjectRotate90
+ObjectRotate90CCW
+ObjectFlipHorizontally
+ObjectFlipVertically
+----------
+UnhideAll
+UnhideAllInAllLayers
+UnlockAll
+UnlockAllInAllLayers
+          </label>
+        </page>
+        <page name="null_Path" gui-text="Path">
+          <label xml:space="preserve">
+SelectionUnion
+SelectionDiff
+SelectionIntersect
+----------
+SelectionSymDiff
+SelectionDivide
+SelectionCutPath
+----------
+SelectionCombine
+SelectionBreakApart
+----------
+SelectionInset
+SelectionOffset
+SelectionReverse
+          </label>
+        </page>
+        <page name="null_Text" gui-text="Text">
+          <label xml:space="preserve">
+SelectionTextToPath
+SelectionTextFromPath
+SelectionTextRemoveKerns
+          </label>
+        </page>
+        <page name="null_Filters" gui-text="Filters">
+          <label xml:space="preserve">
+Color
+org.inkscape.color.brighter
+          </label>
+        </page>
+        <page name="null_Extensions" gui-text="Extensions">
+          <label xml:space="preserve">
+EffectLast
+          </label>
+        </page>
+      </param>
+<!-- REFERENCE END -->
+      <!-- </label> -->
+    </page>
+   </param>
+   <param name="dry_run" type="bool" gui-text="Dry run">true</param>
+  
+  <effect>
+    <!--object-type>path</object-type-->
+    <effects-menu>
+      <submenu name="Custom"/>
+    </effects-menu>
+  </effect>
+  <script>
+    <command location="inx" interpreter="python">BatchTask.py</command>
+  </script>
+</inkscape-extension>
