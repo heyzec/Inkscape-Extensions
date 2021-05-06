@@ -27,26 +27,20 @@ def custom_effect(self: BaseExtension):
     actions_list = []
 
     proc = subprocess.run("inkscape --verb-list | grep -oP '^.+?(?=:)'",
-                            shell=True,
-                            capture_output=True)
-    verb_list = proc.stdout.decode().split('\n')
+                            shell=True, capture_output=True)
+    valid_actions_and_verbs = proc.stdout.decode().splitlines()
 
     proc = subprocess.run("inkscape --action-list | grep -oP '^.+?(?= *:)'",
-                            shell=True,
-                            capture_output=True)
-    action_list = proc.stdout.decode().split('\n')
+                            shell=True, capture_output=True)
+    valid_actions_and_verbs += proc.stdout.decode().splitlines()
 
 
-    self.options.dry_run = True if self.options.dry_run == 'true' else False
-    if self.options.dry_run:
-        self.msg("Root:", self.show(self.find(root, '/*')))
-        self.msg("Selected:", self.show(self.find(selected, '/*')))
-        self.msg()
+    self.options.dry_run = self.options.dry_run == 'true'
 
     def verify_action(action):
         if ':' in action:
             action = action.split(':')[0]
-        if action not in verb_list + action_list:
+        if action not in valid_actions_and_verbs:
             raise ValueError(action)
 
     def select_do_individually(objs, actions):
@@ -76,13 +70,13 @@ def custom_effect(self: BaseExtension):
             elif self.options.effect1 is not None:
                 self.options.tab_effect = 'Simple'
 
-        if self.options.tab_effect == 'Simple':
-            for attr in ('effect1', 'effect2', 'effect3'):
+        elif self.options.tab_effect in ('Preset', 'Simple'):
+            for attr in ('effect_' + self.options.tab_effect.lower() + str(i) for i in range(1, 4)):
                 e = getattr(self.options, attr)
                 if e != None:
                     effects += [e.strip()]
-                if effects == []:
-                    raise ValueError
+            if effects == []:
+                raise ValueError
         elif self.options.tab_effect == 'Multi':
             if self.options.effects is None:
                 raise ValueError
@@ -92,12 +86,13 @@ def custom_effect(self: BaseExtension):
         self.msg("No effects inputted! Quitting...")
         sys.exit(0)
 
+
     if self.options.target == 'root':
-        objects = self.find(root, self.options.xpath)
+        objects = self.find(root, '/svg:svg' + self.options.xpath)
     elif self.options.target == 'selected':
         objects = self.find(selected, self.options.xpath)
     if objects == []:
-        self.msg(f"No objects to apply on.")
+        self.msg(f"No objects satisfies XPath: '{self.options.xpath}'.")
         self.msg("Root:", self.show(root))
         self.msg("Selected:", self.show(selected))
         sys.exit(0)
@@ -112,6 +107,15 @@ def custom_effect(self: BaseExtension):
         self.msg(f"'{e.args[0]}' is not a valid action or verb in inkscape.")
         sys.exit(1)
 
+    if self.options.dry_run:
+        self.msg(f"{'DRY RUN':=^40}")
+        self.msg("Root:", self.show(self.find(root, '/*')))
+        self.msg("Selected:", self.show(selected))
+        self.msg()
+        self.msg("XPath:", self.show(objects))
+        self.msg()
+        self.msg("Actions:", actions_list)
+        sys.exit(0)
     return actions_list
 
 
@@ -134,7 +138,7 @@ def args_adder(arg_parser: ArgumentParser):
                                 help="Mode to apply effects on objects")
     arg_parser.add_argument("--tab_effect",
                                 default=None)
-    for arg in ('effect1', 'effect2', 'effect3', 'effects'):
+    for arg in (*(x + str(y) for x in ('effect_preset', 'effect_simple') for y in range(1, 4)), 'effects'):
         arg_parser.add_argument(f"--{arg}",
                                 default=None,
                                 help="Inkscape verb for path op")

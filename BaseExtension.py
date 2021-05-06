@@ -80,147 +80,60 @@ class BaseExtension(inkex.Effect):
 
     @staticmethod
     def show(obj):
+        """Returns a str representation of object"""
         def rep(obj):
             if hasattr(obj, 'get_id'):
                 return f"{type(obj).__name__}({obj.get_id()})"
             return f"{type(obj).__name__}"
 
 
+        if type(obj).__name__ == 'ElementList':
+            return ('ElementList(' +
+                ', '.join([rep(child) for child in obj.values()]) +
+                ')')
         if isinstance(obj, list):
-            return ('[' +
-                ', '.join([rep(child) for child in obj]) +
-                ']')
-        else:
-            return rep(obj)
+            return '[' + ', '.join(rep(child) for child in obj) + ']'
 
 
-    def find(self, obj: any, xpath='/*', tb=None) -> list:
-        """Returns a list of objects which satisfies xpath
+        return rep(obj)
+
+
+    def find(self, obj: any, xpath='/*') -> list:
+        """Returns a list of objects which satisfies XPath
 
         Args:
             obj (any): Parent object to recurse into. Examples include root, selected, or a group.
             xpath (str, optional): Defaults to '/*'.
-            tb ([type], optional): Traceback object used only for debugging.
 
         Returns:
             list: [description]
         """
 
-        tag_dict = {
-            'l': 'Layer',
-            'g': 'Group',
-            'p': 'PathElement',
-            'img': 'Image'
+        BASIC_TAGS = ('circle', 'ellipse', 'line', 'polygon', 'polyline', 'rect', 'path', 'image', 'g')
+        SPECIAL_TAGS = {
+            'l': "svg:g[@inkscape:groupmode='layer']",
+            'p': 'svg:path'
         }
 
-        def debug(*msg, indent=0):
-            if tb != None:
-                self.msg(' ' * indent * 4 + ' '.join(str(i) for i in msg))
+        xpath = re.sub(r'((?<=/)(' + '|'.join(BASIC_TAGS) + r')\b)', r'svg:\1', xpath)
+        for k, v in SPECIAL_TAGS.items():
+            xpath = re.sub('(?<=/)' + k + r'\b', v, xpath)
 
-        def is_meta(obj):
-            return type(obj).__name__ in (
-                'Defs',
-                'NamedView',
-                'Metadata',
-                'StyleElement'
-                )
+        xpath = re.sub(r'(?<=\[)(\d+):(\d+)(?=\])', r'position()>=\1 and position()<\2', xpath)
 
+        if type(obj).__name__ != 'ElementList':
+            obj = [obj]
 
-        def is_iterable(obj):
-            return type(obj).__name__ in ('Group', 'Layer')
+        output = []
+        for child in obj:
+            matches =  child.xpath(xpath, namespaces={
+                                'svg': 'http://www.w3.org/2000/svg',
+                                'inkscape': 'http://www.inkscape.org/namespaces/inkscape'})
+            for match in matches:
+                if type(match).__name__ not in ('Defs', 'NamedView', 'Metadata'):
+                    output.append(match)
 
-        def recurse(objects, cur_xpath, tb):
-            objects = self.z_sort(objects)
-
-            _, this_type, this_n, next_xpath = re.findall(r"""
-                (//?)
-                (\w+|\*)
-                (?:\[(-?\d+(?::-?(?:\d+)?){0,2})\])? # Optional square brackets, -ve no. possible
-                (.*)
-                """, cur_xpath, re.VERBOSE)[0]
-
-            only_immediate = _ != '//'
-
-
-            if tb != None:
-                indent = len(tb)
-                debug('')
-                debug(f"Traceback: {'->'.join(self.show(objects) for objects in tb)}", indent=indent)
-                debug(f"Received: {self.show(objects)} to match {cur_xpath}", indent=indent)
-            else:
-                indent = None
-
-
-            if this_n == '':
-                this_n = None
-            elif ':' in this_n:
-                this_n = [int(n) if n != '' else None for n in this_n.split(':')]
-            else:
-                this_n = int(this_n)
-
-
-            output = []
-            to_recurse = []
-            matching_types = []
-            for obj in objects:
-                match_type = this_type == '*' or type(obj).__name__ == tag_dict[this_type]
-
-                if match_type:
-                    matching_types += [obj]
-                if not only_immediate:
-                    to_recurse += [obj]
-
-
-            try:
-                if this_n is None:
-                    matches = matching_types
-                elif isinstance(this_n, int):
-                    matches = [matching_types[this_n]]
-                else:
-                    assert this_n[1] is not None, "end must be specified (for now...)"
-                    matches = matching_types[slice(*this_n)]
-            except IndexError:
-                self.msg("WARN: list index out of range")
-                matches = []
-
-
-            if only_immediate:
-                if next_xpath == '':
-                    debug(f"Desired last iteration reached: {self.show(matches)}", indent=indent)
-                    output += matches
-                else:
-                    debug(f"Found partial match, will recurse: {self.show(matches)}", indent=indent)
-                    to_recurse += matches
-            else:
-                debug(f"Will recurse: {matches}", indent=indent)
-                output += matches
-
-
-
-            for obj in to_recurse:
-                if not is_iterable(obj):
-                    # debug(self.show(obj) + " not iterable", indent=indent)
-                    pass
-                else:
-                    # Assume iterable obj is not dict-like
-                    # debug(self.show(obj) + " is iterable", indent=indent)
-                    # debug(f"Before recurse: {self.show(x)}", indent=indent)
-                    output += recurse([child for child in obj],
-                            next_xpath if only_immediate else cur_xpath,
-                            tb=tb + (obj,) if tb is not None else tb)
-
-            return output
-
-        if type(obj).__name__ in ('ElementList', 'SvgDocumentElement'):
-            if tb is not None:
-                tb += (obj,)
-            if type(obj).__name__ == 'ElementList':
-                obj = obj.values()
-            return recurse([child for child in obj if not is_meta(child)],
-                xpath, tb=tb)
-
-        else:
-            return recurse(obj, xpath, tb=tb)
+        return output
 
 
     def effect(self):
