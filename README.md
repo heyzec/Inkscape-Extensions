@@ -1,5 +1,5 @@
 # Inkscape-Extensions
-Some extensions for Inkscape
+Some extensions for Inkscape, written in Python3.
 
 ## BatchTask
 ### What does this do?
@@ -12,5 +12,5 @@ This extension applies an effect on multiple objects at once. You can pick them 
 Not much by itself - it serves to make writing new extensions simpler. It handles the tempfiles used by the extension when applying effects. Calling an extension made using BaseExtension from another is also easier as there is a call method available.
 
 ## How to try these extensions out?
-Git clone this repo into your inkscape user extensions folder. You can find this under Edit -> Preferences -> System -> User extensions
+`git clone` this repo into your inkscape user extensions folder. You can find this under Edit -> Preferences -> System -> User extensions.
 
