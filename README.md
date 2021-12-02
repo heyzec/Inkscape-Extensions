@@ -3,6 +3,8 @@ Some extensions for Inkscape
 
 ## BatchTask
 ### What does this do?
+![output2](https://user-images.githubusercontent.com/61238538/144407057-bb5d532e-b948-4084-a399-06a8b80e8541.gif)
+
 This extension applies an effect on multiple objects at once. You can pick them from the dropdown menu containing some common actions, or any of the builtin Inkscape actions or verbs. Run `inkscape --action-list` and `inkscape --verb-list` to show the available effects. Target objects can be selected via an XPath like selector.
 
 ## BaseExtension
